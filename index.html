@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>運転日報システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0;
+            overflow-x: hidden;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 430px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 15px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-bottom: 2px solid #ddd;
+            flex-shrink: 0;
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            color: #666;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            min-width: 80px;
+        }
+
+        .tab-button.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            margin-bottom: -2px;
+        }
+
+        .tab-button:hover {
+            background: #f0f0f0;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+            flex: 1;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+
+        input[type="date"],
+        input[type="number"],
+        input[type="text"],
+        input[type="file"] {
+            width: 90%;
+            padding: 5px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        #driveDate {
+            width: 91%;
+        }
+
+        #remarks {
+            width: 95%;
+        }
+
+        input[type="date"]:focus,
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        input[type="file"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-register {
+            background: #667eea;
+            color: white;
+            flex: 1;
+        }
+
+        .btn-register:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-reset {
+            background: #ddd;
+            color: #333;
+            flex: 1;
+        }
+
+        .btn-reset:hover {
+            background: #bbb;
+        }
+
+        .btn-apply-bg {
+            background: #667eea;
+            color: white;
+            width: 100%;
+        }
+
+        .btn-apply-bg:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-delete {
+            background: #ff6b6b;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+            width: 48%;
+        }
+
+        .btn-delete:hover {
+            background: #ee5a52;
+        }
+
+        .btn-edit {
+            background: #51cf66;
+            color: white;
+            padding: 8px 12px;
+            font-size: 12px;
+            width: 48%;
+        }
+
+        .btn-edit:hover {
+            background: #40c057;
+        }
+
+        .btn-action-group {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-delete-all {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-delete-all:hover {
+            background: #ee5a52;
+        }
+
+        .btn-csv {
+            background: #51cf66;
+            color: white;
+        }
+
+        .btn-csv:hover {
+            background: #40c057;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 12px;
+        }
+
+        thead {
+            background: #f5f5f5;
+        }
+
+        th {
+            padding: 10px 8px;
+            text-align: left;
+            font-weight: bold;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            font-size: 11px;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #eee;
+            color: #666;
+        }
+
+        tr:hover {
+            background: #f9f9f9;
+        }
+
+        .checkbox-col {
+            width: 35px;
+            text-align: center;
+        }
+
+        input[type="checkbox"] {
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .action-col {
+            text-align: center;
+            width: 110px;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 13px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .message.show {
+            display: block;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            font-size: 12px;
+            opacity: 0.9;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .control-buttons button {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px;
+        }
+
+        .selected-delete-group {
+            display: none;
+            margin-top: 15px;
+        }
+
+        .selected-delete-group button {
+            width: 100%;
+        }
+
+        /* モーダルダイアログのスタイル */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            padding: 30px 20px;
+            max-width: 400px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            margin: 20px auto;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .modal-message {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-btn-confirm {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .modal-btn-confirm:hover {
+            background: #ee5a52;
+            transform: translateY(-2px);
+        }
+
+        .modal-btn-cancel {
+            background: #ddd;
+            color: #333;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #bbb;
+        }
+
+        /* 編集フォームモーダル */
+        .edit-form-content {
+            text-align: left;
+        }
+
+        .edit-form-content .form-group {
+            margin-bottom: 12px;
+        }
+
+        .edit-form-content label {
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .edit-form-content input {
+            width: 100%;
+            padding: 8px;
+            font-size: 12px;
+        }
+
+        .modal-buttons-edit {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .background-preview {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .background-info {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e7f3ff;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            color: #333;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .background-info strong {
+            color: #667eea;
+        }
+
+        .transparency-control {
+            margin-top: 20px;
+        }
+
+        .transparency-control label {
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .transparency-value {
+            text-align: center;
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        /* 色選択スタイル */
+        .color-selection {
+            margin-top: 20px;
+        }
+
+        .color-buttons {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .color-btn {
+            padding: 15px;
+            border: 3px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-btn.active {
+            border: 3px solid #333;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-black {
+            background-color: #000000;
+        }
+
+        .color-white {
+            background-color: #ffffff;
+            color: #333;
+            text-shadow: none;
+        }
+
+        .color-purple {
+            background-color: #9b59b6;
+        }
+
+        .color-cyan {
+            background-color: #00bcd4;
+        }
+
+        .color-lime {
+            background-color: #7fff00;
+            color: #333;
+            text-shadow: none;
+        }
+
+        .separator {
+            height: 1px;
+            background-color: #ddd;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 運転日報システム</h1>
+            <p>日々の運転記録を効率的に管理</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab(0)">入力画面</button>
+            <button class="tab-button" onclick="switchTab(1)">一覧・管理</button>
+            <button class="tab-button" onclick="switchTab(2)">背景変更</button>
+        </div>
+
+        <div class="content-wrapper">
+            <!-- 入力画面 -->
+            <div class="tab-content active">
+                <div class="message success-message" id="successMessage">✓ データが正常に登録されました</div>
+
+                <form id="inputForm">
+                    <div class="form-group">
+                        <label for="driveDate">運転日</label>
+                        <input type="date" id="driveDate" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="startMeter">開始メーター (km)</label>
+                            <input type="number" id="startMeter" placeholder="例: 12500" step="0.1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="endMeter">終了メーター (km)</label>
+                            <input type="number" id="endMeter" placeholder="例: 12650" step="0.1">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="remarks">行先(任意)</label>
+                        <input type="text" id="remarks" placeholder="例: 市内、倉敷など">
+                    </div>
+
+                    <div class="button-group">
+                        <button type="submit" class="btn-register">登録</button>
+                        <button type="reset" class="btn-reset">クリア</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- 一覧・管理画面 -->
+            <div class="tab-content">
+                <div class="message success-message" id="successMessage2">✓ 処理が完了しました</div>
+                <div class="message error-message" id="errorMessage"></div>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <h3>総記録件数</h3>
+                        <div class="value" id="totalRecords">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3>総走行距離</h3>
+                        <div class="value" id="totalDistance">0 km</div>
+                    </div>
+                </div>
+
+                <div class="control-buttons">
+                    <button class="btn-csv" onclick="exportToCSV()">📥 CSVで出力</button>
+                    <button class="btn-delete-all" onclick="confirmDeleteAll()">🗑️ すべて削除</button>
+                </div>
+
+                <div class="table-container">
+                    <div id="emptyMessage" class="empty-message">
+                        データがまだ登録されていません
+                    </div>
+                    <table id="dataTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th class="checkbox-col">
+                                    <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()">
+                                </th>
+                                <th>運転日</th>
+                                <th>行先</th>
+                                <th>開始</th>
+                                <th>終了</th>
+                                <th>距離</th>
+                                <th class="action-col">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="selected-delete-group" id="selectedDeleteGroup">
+                    <button class="btn-delete-all" onclick="confirmDeleteSelected()">選択したデータを削除</button>
+                </div>
+            </div>
+
+            <!-- 背景変更タブ -->
+            <div class="tab-content">
+                <div class="message success-message" id="successMessage3">✓ 背景が適用されました</div>
+
+                <div class="color-selection">
+                    <label>背景色を選択</label>
+                    <div class="color-buttons">
+                        <button type="button" class="color-btn color-black active" data-color="#000000" onclick="selectColor('#000000', this)">黒</button>
+                        <button type="button" class="color-btn color-white" data-color="#ffffff" onclick="selectColor('#ffffff', this)">白</button>
+                        <button type="button" class="color-btn color-purple" data-color="#9b59b6" onclick="selectColor('#9b59b6', this)">紫</button>
+                        <button type="button" class="color-btn color-cyan" data-color="#00bcd4" onclick="selectColor('#00bcd4', this)">水色</button>
+                        <button type="button" class="color-btn color-lime" data-color="#7fff00" onclick="selectColor('#7fff00', this)">黄緑</button>
+                    </div>
+                </div>
+
+                <div class="separator"></div>
+
+                <div class="form-group">
+                    <label for="backgroundImage">または、背景画像を選択</label>
+                    <input type="file" id="backgroundImage" accept="image/*">
+                    <div class="background-preview" id="backgroundPreview">画像が選択されていません</div>
+                </div>
+
+                <button class="btn-apply-bg" onclick="applyBackgroundImage()">背景画像を適用</button>
+
+                <div class="transparency-control">
+                    <label for="transparencySlider">コンテナの透過率：<span id="transparencyPercent">95%</span></label>
+                    <input type="range" id="transparencySlider" min="0" max="100" value="95" onchange="updateTransparency()">
+                    <div class="transparency-value">0（完全透明）← → 100（完全不透明）</div>
+                </div>
+
+                <div class="background-info">
+                    <strong>📌 使い方：</strong><br>
+                    1. 背景色を選択するか、背景画像を選択してください<br>
+                    2. 「背景画像を適用」ボタンを押します<br>
+                    3. 透過率スライダーで見た目を調整できます<br>
+                    4. 一度設定した背景は固定されます
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 確認モーダル -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalTitle">確認</div>
+            <div class="modal-message" id="modalMessage">削除してもよろしいですか？</div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-confirm" onclick="executeDelete()">削除する</button>
+                <button class="modal-btn modal-btn-cancel" onclick="cancelDelete()">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 編集モーダル -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-content">
+            <div class="modal-title">データを編集</div>
+            <div class="edit-form-content">
+                <div class="form-group">
+                    <label for="editDate">運転日</label>
+                    <input type="date" id="editDate">
+                </div>
+                <div class="form-group">
+                    <label for="editStart">開始メーター (km)</label>
+                    <input type="number" id="editStart" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="editEnd">終了メーター (km)</label>
+                    <input type="number" id="editEnd" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="editRemarks">行先</label>
+                    <input type="text" id="editRemarks">
+                </div>
+            </div>
+            <div class="modal-buttons-edit">
+                <button class="modal-btn modal-btn-confirm" onclick="saveEdit()">保存</button>
+                <button class="modal-btn modal-btn-cancel" onclick="cancelEdit()">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'drivingRecords';
+        const BACKGROUND_KEY = 'backgroundImage';
+        const BACKGROUND_COLOR_KEY = 'backgroundColor';
+        const TRANSPARENCY_KEY = 'containerTransparency';
+        let pendingDeleteAction = null;
+        let selectedBackgroundImage = null;
+        let selectedColor = '#000000';
+        let editingRecordId = null;
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function () {
+            setTodayDate();
+            loadData();
+            loadSavedBackground();
+            document.getElementById('inputForm').addEventListener('submit', handleFormSubmit);
+            document.getElementById('backgroundImage').addEventListener('change', handleBackgroundImageChange);
+        });
+
+        // 保存された背景を読み込む
+        function loadSavedBackground() {
+            const savedColor = localStorage.getItem(BACKGROUND_COLOR_KEY) || '#000000';
+            const savedBackgroundImage = localStorage.getItem(BACKGROUND_KEY);
+            const savedTransparency = localStorage.getItem(TRANSPARENCY_KEY) || '95';
+            
+            selectedColor = savedColor;
+            
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                if (btn.getAttribute('data-color') === savedColor) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+            
+            if (savedBackgroundImage) {
+                document.body.style.backgroundColor = 'transparent';
+                document.body.style.backgroundImage = `url('${savedBackgroundImage}')`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundAttachment = 'fixed';
+            } else {
+                document.body.style.backgroundColor = savedColor;
+                document.body.style.backgroundImage = 'none';
+            }
+
+            document.getElementById('transparencySlider').value = savedTransparency;
+            updateTransparency();
+        }
+
+        // 色を選択
+        function selectColor(color, element) {
+            selectedColor = color;
+            
+            document.querySelectorAll('.color-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            element.classList.add('active');
+            
+            document.body.style.backgroundColor = color;
+            document.body.style.backgroundImage = 'none';
+            
+            localStorage.setItem(BACKGROUND_COLOR_KEY, color);
+            localStorage.removeItem(BACKGROUND_KEY);
+            
+            showBackgroundSuccessMessage();
+        }
+
+        // 背景画像ファイル選択時の処理
+        function handleBackgroundImageChange(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    selectedBackgroundImage = event.target.result;
+                    
+                    document.getElementById('backgroundPreview').textContent = `✓ 選択済み: ${file.name}`;
+                    document.getElementById('backgroundPreview').style.color = '#155724';
+                    document.getElementById('backgroundPreview').style.backgroundColor = '#d4edda';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 背景画像を適用
+        function applyBackgroundImage() {
+            if (!selectedBackgroundImage) {
+                alert('背景画像を選択してください');
+                return;
+            }
+
+            localStorage.setItem(BACKGROUND_KEY, selectedBackgroundImage);
+            localStorage.setItem(BACKGROUND_COLOR_KEY, selectedColor);
+            
+            setTimeout(() => {
+                document.body.style.backgroundColor = 'transparent';
+                document.body.style.backgroundImage = `url('${selectedBackgroundImage}')`;
+                document.body.style.backgroundSize = 'cover';
+                document.body.style.backgroundPosition = 'center';
+                document.body.style.backgroundAttachment = 'fixed';
+                document.body.style.backgroundRepeat = 'no-repeat';
+            }, 50);
+
+            showBackgroundSuccessMessage();
+        }
+
+        // 背景成功メッセージ表示
+        function showBackgroundSuccessMessage() {
+            const msg = document.getElementById('successMessage3');
+            msg.classList.add('show');
+            setTimeout(() => {
+                msg.classList.remove('show');
+            }, 3000);
+        }
+
+        // 透過率を更新
+        function updateTransparency() {
+            const value = document.getElementById('transparencySlider').value;
+            document.getElementById('transparencyPercent').textContent = value + '%';
+            
+            const opacity = value / 100;
+            document.querySelector('.container').style.background = `rgba(255, 255, 255, ${opacity})`;
+            
+            localStorage.setItem(TRANSPARENCY_KEY, value);
+        }
+
+        // 今日の日付を自動入力
+        function setTodayDate() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('driveDate').value = today;
+        }
+
+        // フォーム送信
+        function handleFormSubmit(e) {
+            e.preventDefault();
+
+            const driveDate = document.getElementById('driveDate').value;
+            const startMeterInput = document.getElementById('startMeter').value;
+            const endMeterInput = document.getElementById('endMeter').value;
+            const remarks = document.getElementById('remarks').value;
+
+            if (!startMeterInput && !endMeterInput) {
+                alert('開始メーターまたは終了メーターのどちらかを入力してください');
+                return;
+            }
+
+            const startMeter = startMeterInput ? parseFloat(startMeterInput) : null;
+            const endMeter = endMeterInput ? parseFloat(endMeterInput) : null;
+
+            if (startMeter !== null && endMeter !== null && endMeter <= startMeter) {
+                alert('終了メーターは開始メーターより大きい値を入力してください');
+                return;
+            }
+
+            let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+            const existingIndex = records.findIndex(r => r.date === driveDate);
+
+            if (existingIndex !== -1) {
+                const existing = records[existingIndex];
+
+                if (startMeter !== null) {
+                    existing.startMeter = startMeter;
+                }
+                if (endMeter !== null) {
+                    existing.endMeter = endMeter;
+                }
+                if (remarks) {
+                    existing.remarks = remarks;
+                }
+
+                if (existing.startMeter !== null && existing.endMeter !== null) {
+                    existing.distance = existing.endMeter - existing.startMeter;
+                } else {
+                    existing.distance = null;
+                }
+            } else {
+                const distance = (startMeter !== null && endMeter !== null) ? endMeter - startMeter : null;
+
+                const record = {
+                    id: Date.now(),
+                    date: driveDate,
+                    startMeter: startMeter,
+                    endMeter: endMeter,
+                    distance: distance,
+                    remarks: remarks
+                };
+
+                records.push(record);
+            }
+
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+
+            showSuccessMessage();
+
+            document.getElementById('inputForm').reset();
+            setTodayDate();
+
+            setTimeout(() => {
+                switchTab(1);
+            }, 500);
+        }
+
+        // 成功メッセージ表示
+        function showSuccessMessage() {
+            const msg = document.getElementById('successMessage');
+            msg.classList.add('show');
+            setTimeout(() => {
+                msg.classList.remove('show');
+            }, 3000);
+        }
+
+        function showSuccessMessage2() {
+            const msg = document.getElementById('successMessage2');
+            msg.classList.add('show');
+            setTimeout(() => {
+                msg.classList.remove('show');
+            }, 3000);
+        }
+
+        // タブ切り替え
+        function switchTab(index) {
+            document.querySelectorAll('.tab-button').forEach((btn, i) => {
+                btn.classList.toggle('active', i === index);
+            });
+            document.querySelectorAll('.tab-content').forEach((content, i) => {
+                content.classList.toggle('active', i === index);
+            });
+
+            if (index === 1) {
+                loadData();
+            }
+        }
+
+        // データ読込と表示
+        function loadData() {
+            const records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            const tableBody = document.getElementById('tableBody');
+            const emptyMessage = document.getElementById('emptyMessage');
+            const table = document.getElementById('dataTable');
+
+            tableBody.innerHTML = '';
+
+            if (records.length === 0) {
+                table.style.display = 'none';
+                emptyMessage.style.display = 'block';
+                document.getElementById('selectedDeleteGroup').style.display = 'none';
+                document.getElementById('totalRecords').textContent = '0';
+                document.getElementById('totalDistance').textContent = '0 km';
+            } else {
+                table.style.display = 'table';
+                emptyMessage.style.display = 'none';
+
+                records.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                records.forEach(record => {
+                    const row = document.createElement('tr');
+                    const startDisplay = record.startMeter !== null ? record.startMeter.toFixed(1) : '-';
+                    const endDisplay = record.endMeter !== null ? record.endMeter.toFixed(1) : '-';
+                    const distanceDisplay = record.distance !== null ? record.distance.toFixed(1) : '-';
+
+                    row.innerHTML = `
+                        <td class="checkbox-col">
+                            <input type="checkbox" class="record-checkbox" data-id="${record.id}" onchange="updateDeleteButton()">
+                        </td>
+                        <td>${formatDate(record.date)}</td>
+                        <td>${record.remarks || '-'}</td>
+                        <td>${startDisplay}</td>
+                        <td>${endDisplay}</td>
+                        <td><strong>${distanceDisplay}</strong></td>
+                        <td class="action-col">
+                            <div class="btn-action-group">
+                                <button class="btn-edit" onclick="openEdit(${record.id})">✎編集</button>
+                                <button class="btn-delete" onclick="confirmDeleteRecord(${record.id})">🗑️削除</button>
+                            </div>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                document.getElementById('totalRecords').textContent = records.length;
+                const totalDistance = records.reduce((sum, record) => {
+                    return sum + (record.distance !== null ? record.distance : 0);
+                }, 0);
+                document.getElementById('totalDistance').textContent = totalDistance.toFixed(1) + ' km';
+            }
+
+            document.getElementById('selectAllCheckbox').checked = false;
+        }
+
+        // 日付フォーマット
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit' });
+        }
+
+        // 編集画面を開く
+        function openEdit(recordId) {
+            const records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            const record = records.find(r => r.id === recordId);
+
+            if (!record) return;
+
+            editingRecordId = recordId;
+            
+            document.getElementById('editDate').value = record.date;
+            document.getElementById('editStart').value = record.startMeter || '';
+            document.getElementById('editEnd').value = record.endMeter || '';
+            document.getElementById('editRemarks').value = record.remarks || '';
+
+            document.getElementById('editModal').classList.add('show');
+        }
+
+        // 編集をキャンセル
+        function cancelEdit() {
+            document.getElementById('editModal').classList.remove('show');
+            editingRecordId = null;
+        }
+
+        // 編集を保存
+        function saveEdit() {
+            const newDate = document.getElementById('editDate').value;
+            const newStart = document.getElementById('editStart').value ? parseFloat(document.getElementById('editStart').value) : null;
+            const newEnd = document.getElementById('editEnd').value ? parseFloat(document.getElementById('editEnd').value) : null;
+            const newRemarks = document.getElementById('editRemarks').value;
+
+            if (newStart !== null && newEnd !== null && newEnd <= newStart) {
+                alert('終了メーターは開始メーターより大きい値を入力してください');
+                return;
+            }
+
+            let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            const record = records.find(r => r.id === editingRecordId);
+
+            if (record) {
+                record.date = newDate;
+                record.startMeter = newStart;
+                record.endMeter = newEnd;
+                record.remarks = newRemarks;
+
+                if (newStart !== null && newEnd !== null) {
+                    record.distance = newEnd - newStart;
+                } else {
+                    record.distance = null;
+                }
+
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+                loadData();
+                showSuccessMessage2();
+                document.getElementById('editModal').classList.remove('show');
+                editingRecordId = null;
+            }
+        }
+
+        // 確認モーダル表示
+        function showConfirmModal(title, message, action) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('confirmModal').classList.add('show');
+            pendingDeleteAction = action;
+        }
+
+        // 削除キャンセル
+        function cancelDelete() {
+            document.getElementById('confirmModal').classList.remove('show');
+            pendingDeleteAction = null;
+        }
+
+        // 1件削除確認
+        function confirmDeleteRecord(id) {
+            showConfirmModal(
+                '❌ データを削除します',
+                'このデータを削除してもよろしいですか？この操作は取り消せません。',
+                () => deleteRecord(id)
+            );
+        }
+
+        // 1件削除実行
+        function deleteRecord(id) {
+            let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            const recordToDelete = records.find(r => r.id === id);
+            
+            if (recordToDelete) {
+                records = records.filter(r => r.id !== id);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+                loadData();
+                showSuccessMessage2();
+            }
+        }
+
+        // すべて削除確認
+        function confirmDeleteAll() {
+            showConfirmModal(
+                '⚠️ すべてのデータを削除します',
+                'すべてのデータを削除してもよろしいですか？この操作は取り消せません。',
+                () => deleteAllData()
+            );
+        }
+
+        // すべて削除実行
+        function deleteAllData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify([]));
+            loadData();
+            showSuccessMessage2();
+        }
+
+        // 複数選択削除確認
+        function confirmDeleteSelected() {
+            const checkedCount = document.querySelectorAll('.record-checkbox:checked').length;
+            showConfirmModal(
+                '❌ データを削除します',
+                `${checkedCount}件のデータを削除してもよろしいですか？この操作は取り消せません。`,
+                () => deleteSelected()
+            );
+        }
+
+        // 複数選択削除実行
+        function deleteSelected() {
+            const selectedIds = Array.from(document.querySelectorAll('.record-checkbox:checked'))
+                .map(checkbox => parseInt(checkbox.dataset.id));
+
+            let records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+            records = records.filter(r => !selectedIds.includes(r.id));
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+            loadData();
+            showSuccessMessage2();
+        }
+
+        // チェックボックス全選択
+        function toggleSelectAll() {
+            const isChecked = document.getElementById('selectAllCheckbox').checked;
+            document.querySelectorAll('.record-checkbox').forEach(checkbox => {
+                checkbox.checked = isChecked;
+            });
+            updateDeleteButton();
+        }
+
+        // 削除ボタン表示更新
+        function updateDeleteButton() {
+            const checkedCount = document.querySelectorAll('.record-checkbox:checked').length;
+            const deleteGroup = document.getElementById('selectedDeleteGroup');
+            deleteGroup.style.display = checkedCount > 0 ? 'block' : 'none';
+        }
+
+        // CSV出力
+        function exportToCSV() {
+            const records = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+            if (records.length === 0) {
+                alert('エクスポートするデータがありません');
+                return;
+            }
+
+            const headers = ['運転日', '行先', '開始メーター(km)', '終了メーター(km)', '走行距離(km)'];
+
+            let csvContent = '\uFEFF' + headers.map(header => `"${header}"`).join(',') + '\n';
+
+            records.forEach(record => {
+                const date = record.date;
+                const remark = record.remarks || '';
+                const start = record.startMeter !== null ? record.startMeter.toFixed(1) : '';
+                const end = record.endMeter !== null ? record.endMeter.toFixed(1) : '';
+                const distance = record.distance !== null ? record.distance.toFixed(1) : '';
+
+                const row = [date, remark, start, end, distance];
+                csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', `運転日報_${new Date().toISOString().split('T')[0]}.csv`);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                showSuccessMessage2();
+            }
+        }
+
+        // 削除実行（モーダルの削除ボタンから呼ばれる）
+        function executeDelete() {
+            if (pendingDeleteAction) {
+                pendingDeleteAction();
+                document.getElementById('confirmModal').classList.remove('show');
+                pendingDeleteAction = null;
+            }
+        }
+    </script>
+</body>
+</html>
